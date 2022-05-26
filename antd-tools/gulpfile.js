@@ -139,21 +139,6 @@ function compile(modules) {
   return merge2([less, jsFilesStream, assets]);
 }
 
-function tag() {
-  console.log('tagging');
-  const { version } = packageJson;
-  execSync(`git config --global user.email ${process.env.GITHUB_USER_EMAIL}`);
-  execSync(`git config --global user.name ${process.env.GITHUB_USER_NAME}`);
-  execSync(`git tag ${version}`);
-  execSync(
-    `git push https://${process.env.GITHUB_TOKEN}@github.com/vueComponent/ant-design-vue.git ${version}:${version}`,
-  );
-  execSync(
-    `git push https://${process.env.GITHUB_TOKEN}@github.com/vueComponent/ant-design-vue.git master:master`,
-  );
-  console.log('tagged');
-}
-
 function githubRelease(done) {
   const changlogFiles = [
     path.join(cwd, 'CHANGELOG.en-US.md'),
@@ -203,14 +188,6 @@ function githubRelease(done) {
 }
 
 gulp.task(
-  'tag',
-  gulp.series(done => {
-    tag();
-    githubRelease(done);
-  }),
-);
-
-gulp.task(
   'check-git',
   gulp.series(done => {
     runCmd('git', ['status', '--porcelain'], (code, result) => {
@@ -227,18 +204,13 @@ gulp.task(
   }),
 );
 
-function publish(tagString, done) {
+function publish(tagString) {
   let args = ['publish', '--with-antd-tools'];
   if (tagString) {
     args = args.concat(['--tag', tagString]);
   }
   const publishNpm = process.env.PUBLISH_NPM_CLI || 'npm';
-  runCmd(publishNpm, args, code => {
-    tag();
-    githubRelease(() => {
-      done(code);
-    });
-  });
+  runCmd(publishNpm, args, () => {});
 }
 
 function pub(done) {
